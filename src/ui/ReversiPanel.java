@@ -1,11 +1,14 @@
 package ui;
 
 import game.ReversiBoard;
+import game.Square;
+import game.Square.State;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
 class ReversiPanel extends JPanel {
     public static final int SQUARE_SIZE_PX = 60;
@@ -15,6 +18,8 @@ class ReversiPanel extends JPanel {
     private static final Color BROWN_TWO = new Color(153, 119, 85);
     private static final Color PINK = new Color(255, 187, 187);
     private static final Color GREEN = new Color(204, 255, 85);
+    public static final int PIECE_MARGIN = 2;
+    public static final int VALID_MOVE_DIAMETER = 20;
 
     ReversiBoard reversiBoard;
 
@@ -56,6 +61,7 @@ class ReversiPanel extends JPanel {
 
     public void start() {
         reversiBoard.start();
+        repaint();
     }
 
     public void undo() {
@@ -75,6 +81,7 @@ class ReversiPanel extends JPanel {
         drawBlocked(g);
         drawPlayerOnePieces(g);
         drawPlayerTwoPieces(g);
+        drawValidMoves(g);
     }
 
     private void drawBoard(Graphics g) {
@@ -97,7 +104,7 @@ class ReversiPanel extends JPanel {
         g.setColor(Color.BLACK);
         for (int y = 0; y < BOARD_SIZE; y++) {
             for (int x = 0; x < BOARD_SIZE; x++) {
-                if (reversiBoard.field[y][x] == ReversiBoard.Square.BLOCKED)
+                if (reversiBoard.board[y][x].getState() == State.BLOCKED)
                     g.fillRect(x * SQUARE_SIZE_PX, y * SQUARE_SIZE_PX, SQUARE_SIZE_PX, SQUARE_SIZE_PX);
             }
         }
@@ -107,8 +114,8 @@ class ReversiPanel extends JPanel {
         g.setColor(PINK);
         for (int y = 0; y < BOARD_SIZE; y++) {
             for (int x = 0; x < BOARD_SIZE; x++) {
-                if (reversiBoard.field[y][x] == ReversiBoard.Square.PLAYER_ONE)
-                    g.fillRoundRect(x * SQUARE_SIZE_PX, y * SQUARE_SIZE_PX, SQUARE_SIZE_PX, SQUARE_SIZE_PX, 3, 3);
+                if (reversiBoard.board[y][x].getState() == State.PLAYER_ONE)
+                    g.fillRoundRect(x * SQUARE_SIZE_PX + PIECE_MARGIN, y * SQUARE_SIZE_PX + PIECE_MARGIN, SQUARE_SIZE_PX - PIECE_MARGIN * 2, SQUARE_SIZE_PX - PIECE_MARGIN * 2, 20, 20);
             }
         }
     }
@@ -117,9 +124,20 @@ class ReversiPanel extends JPanel {
         g.setColor(GREEN);
         for (int y = 0; y < BOARD_SIZE; y++) {
             for (int x = 0; x < BOARD_SIZE; x++) {
-                if (reversiBoard.field[y][x] == ReversiBoard.Square.PLAYER_TWO)
-                    g.fillRoundRect(x * SQUARE_SIZE_PX, y * SQUARE_SIZE_PX, SQUARE_SIZE_PX, SQUARE_SIZE_PX, 3, 3);
+                if (reversiBoard.board[y][x].getState() == State.PLAYER_TWO)
+                    g.fillRoundRect(x * SQUARE_SIZE_PX + PIECE_MARGIN, y * SQUARE_SIZE_PX + PIECE_MARGIN, SQUARE_SIZE_PX - PIECE_MARGIN * 2, SQUARE_SIZE_PX - PIECE_MARGIN * 2, 20, 20);
             }
+        }
+    }
+
+    private void drawValidMoves(Graphics g) {
+        switch (reversiBoard.getGameState()) {
+            case PLAYER_ONE -> g.setColor(PINK);
+            case PLAYER_TWO -> g.setColor(GREEN);
+        }
+        ArrayList<Square> validMoves = reversiBoard.getValidMoves();
+        for (Square validMove: validMoves) {
+            g.fillOval(validMove.getCol() * SQUARE_SIZE_PX + SQUARE_SIZE_PX / 2 - VALID_MOVE_DIAMETER / 2, validMove.getRow() * SQUARE_SIZE_PX + SQUARE_SIZE_PX / 2 - VALID_MOVE_DIAMETER / 2, VALID_MOVE_DIAMETER, VALID_MOVE_DIAMETER);
         }
     }
 
